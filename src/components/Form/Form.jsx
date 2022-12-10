@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { FormStyled, Label, Input } from './Form.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { nanoid } from '@reduxjs/toolkit';
+import customNotiflix from 'utils/notiflix';
 
-export const Form = ({ Submit }) => {
+import { FormStyled, Label, Input } from './Form.styled';
+import { addContact } from 'redux/contactsSlice';
+import { getContacts } from 'redux/selectors';
+
+export const Form = () => {
+  const dispatch = useDispatch();
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+  const contactsStore = useSelector(getContacts);
 
   const handleInput = event => {
     const { name, value } = event.currentTarget;
@@ -28,10 +35,19 @@ export const Form = ({ Submit }) => {
   };
 
   const handleSubmit = event => {
+    const contact = {
+      id: nanoid(),
+      name,
+      number,
+    };
     event.preventDefault();
-    const data = { name, number };
 
-    Submit(data);
+    contactsStore.some(item =>
+      item.name.toLowerCase().includes(contact.name.toLowerCase())
+    )
+      ? customNotiflix('This contact is already in the list')
+      : dispatch(addContact(contact));
+
     reset();
   };
 
@@ -64,8 +80,4 @@ export const Form = ({ Submit }) => {
       <button type="submit">Add contact</button>
     </FormStyled>
   );
-};
-
-Form.propTypes = {
-  Submit: PropTypes.func.isRequired,
 };
